@@ -18,12 +18,12 @@ def tokeniser(text: str):
 
     for char in text:
         if char == "{" or char == "}" or char == ":" or char == ",":
-            tokens.append({ "type": "symbol", "value": char})
+            tokens.append(Token(TokenType.symbol, char))
         elif char == "\"" and not is_in_string:
             is_in_string = True
         elif char == "\"" and is_in_string:
             is_in_string = False
-            tokens.append({ "type": "string", "value": string_token})
+            tokens.append(Token(TokenType.string, string_token))
             string_token = ""
         elif is_in_string:
             string_token += char
@@ -34,29 +34,30 @@ def tokeniser(text: str):
     return tokens
 
 
-def validator(tokens):
+def validator(tokens: list[Token]):
     if len(tokens) == 0:
         return False
     
     i = 0
     next_exp_token = "" # can be key, value, or bracket, colon, comma
     while (i < len(tokens)): 
-        if tokens[i]["value"] == "{" and not next_exp_token:
+        current_token = tokens[i]
+        if current_token.value == "{" and not next_exp_token:
             next_exp_token = ["key", "bracket"]
             i += 1
-        elif tokens[i]["type"] == "string" and "key" in next_exp_token:
+        elif current_token.type == TokenType.string and "key" in next_exp_token:
             next_exp_token = ["colon"]
             i += 1
-        elif tokens[i]["type"] == "symbol" and tokens[i]["value"] == ":" and "colon" in next_exp_token:
+        elif current_token.type == TokenType.symbol and current_token.value == ":" and "colon" in next_exp_token:
             next_exp_token = ["value"]
             i += 1
-        elif tokens[i]["type"] == "string" and "value" in next_exp_token:
+        elif current_token.type == TokenType.string and "value" in next_exp_token:
             next_exp_token = ["bracket", "comma"]
             i += 1
-        elif tokens[i]["type"] == "symbol" and tokens[i]["value"] == "," and "comma" in next_exp_token:
+        elif current_token.type == TokenType.symbol and current_token.value == "," and "comma" in next_exp_token:
             next_exp_token = ["key"]
             i += 1
-        elif tokens[i]["value"] == "}" and "bracket" in next_exp_token:
+        elif current_token.value == "}" and "bracket" in next_exp_token:
             next_exp_token = []
             i += 1
         else:
