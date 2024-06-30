@@ -1,5 +1,5 @@
 import unittest
-from jsonparser.parser import validator, Token, TokenType
+from jsonparser.parser import InvalidJson, validator, Token, TokenType
 
 class TestValidator(unittest.TestCase):
     def test_empty_object_valid(self):
@@ -8,6 +8,14 @@ class TestValidator(unittest.TestCase):
     
     def test_empty_string_invalid(self):
         tokens = []
+        self.assertFalse(validator(tokens))
+    
+    def test_missing_closing_bracket_invalid(self):
+        tokens = [            Token(TokenType.symbol, "{"),
+            Token(TokenType.string, "key"),
+            Token(TokenType.symbol, ":"),
+            Token(TokenType.string, "value"),
+            ]
         self.assertFalse(validator(tokens))
 
     def test_one_key_valid(self):
@@ -57,6 +65,60 @@ class TestValidator(unittest.TestCase):
             Token(TokenType.symbol, "}")
         ]
         self.assertFalse(validator(tokens))
+    
+    def test_multiple_data_types_valid(self):
+        tokens = [
+            Token(TokenType.symbol, "{"),
+            Token(TokenType.string, "key1"),
+            Token(TokenType.symbol, ":"),
+            Token(TokenType.string, True),
+            Token(TokenType.symbol, ","),
+            Token(TokenType.string, "key2"),
+            Token(TokenType.symbol, ":"),
+            Token(TokenType.string, False),
+            Token(TokenType.symbol, ","),
+            Token(TokenType.string, "key3"),
+            Token(TokenType.symbol, ":"),
+            Token(TokenType.string, None),
+            Token(TokenType.symbol, ","),
+            Token(TokenType.string, "key4"),
+            Token(TokenType.symbol, ":"),
+            Token(TokenType.string, "value"),
+            Token(TokenType.symbol, ","),
+            Token(TokenType.string, "key5"),
+            Token(TokenType.symbol, ":"),
+            Token(TokenType.string, 101),
+            Token(TokenType.symbol, "}")
+        ]
+        self.assertTrue(validator(tokens))
+
+
+    def test_unkown_token_invalid(self):
+        tokens = [
+            Token(TokenType.symbol, "{"),
+            Token(TokenType.string, "key1"),
+            Token(TokenType.symbol, ":"),
+            Token(TokenType.string, True),
+            Token(TokenType.symbol, ","),
+            Token(TokenType.string, "key2"),
+            Token(TokenType.symbol, ":"),
+            Token(TokenType.unknown, "False"),
+            Token(TokenType.symbol, ","),
+            Token(TokenType.string, "key3"),
+            Token(TokenType.symbol, ":"),
+            Token(TokenType.string, None),
+            Token(TokenType.symbol, ","),
+            Token(TokenType.string, "key4"),
+            Token(TokenType.symbol, ":"),
+            Token(TokenType.string, "value"),
+            Token(TokenType.symbol, ","),
+            Token(TokenType.string, "key5"),
+            Token(TokenType.symbol, ":"),
+            Token(TokenType.string, 101),
+            Token(TokenType.symbol, "}")
+        ]
+        self.assertFalse(validator(tokens))
+
 
 if __name__ == '__main__':
     unittest.main()
