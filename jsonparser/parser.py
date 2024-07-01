@@ -47,9 +47,17 @@ def tokeniser(text: str):
 
 
 def validator(tokens: list[Token]):
-    if len(tokens) == 0:
+    try:
+        parse(tokens)
+        return True
+    except InvalidJson:
         return False
     
+def parse(tokens: list[Token]):
+    if len(tokens) == 0:
+        raise InvalidJson()
+    res = {} 
+    last_key = None
     i = 0
     next_exp_token = [] # can contain key, value, or bracket, colon, comma
     while (i < len(tokens)): 
@@ -58,6 +66,7 @@ def validator(tokens: list[Token]):
             next_exp_token = ["key", "bracket"]
             i += 1
         elif current_token.type == TokenType.string and "key" in next_exp_token:
+            last_key = current_token.value
             next_exp_token = ["colon"]
             i += 1
         elif current_token.type == TokenType.symbol and current_token.value == ":" and "colon" in next_exp_token:
@@ -65,7 +74,9 @@ def validator(tokens: list[Token]):
             i += 1
         elif current_token.type != TokenType.symbol and "value" in next_exp_token:
             if current_token.type == TokenType.unknown:
-                return False
+                raise InvalidJson()
+            res[last_key] = current_token.value
+            last_key = None
             next_exp_token = ["bracket", "comma"]
             i += 1
         elif current_token.type == TokenType.symbol and current_token.value == "," and "comma" in next_exp_token:
@@ -75,6 +86,8 @@ def validator(tokens: list[Token]):
             next_exp_token = []
             i += 1
         else:
-            return False
+            raise InvalidJson()
 
-    return len(next_exp_token) == 0
+    if len(next_exp_token) != 0:
+        raise InvalidJson()
+    return res
