@@ -137,6 +137,37 @@ class TestValidator(unittest.TestCase):
         tokens = [Token(TokenType.symbol, "["), Token(TokenType.symbol, "["), Token(TokenType.number, 2), Token(TokenType.symbol, "]"), Token(TokenType.symbol, "]")]
         self.assertTrue(validator(tokens))
 
+    def test_array_with_items_valid(self):
+        tokens = [
+            Token(TokenType.symbol, "["),
+            Token(TokenType.number, 1),
+            Token(TokenType.symbol, ","),
+            Token(TokenType.number, 2),
+            Token(TokenType.symbol, "]"),
+        ]
+        self.assertTrue(validator(tokens))
+
+    def test_empty_object_in_array_valid(self):
+        tokens = [
+            Token(TokenType.symbol, "["),
+            Token(TokenType.symbol, "{"),
+            Token(TokenType.symbol, "}"),
+            Token(TokenType.symbol, "]"),
+        ]
+        self.assertTrue(validator(tokens))
+
+    def test_object_in_array_valid(self):
+        tokens = [
+            Token(TokenType.symbol, "["),
+            Token(TokenType.symbol, "{"),
+            Token(TokenType.string, "key1"),
+            Token(TokenType.symbol, ":"),
+            Token(TokenType.number, 10),
+            Token(TokenType.symbol, "}"),
+            Token(TokenType.symbol, "]"),
+        ]
+        self.assertTrue(validator(tokens))
+
     def test_array_value_valid(self):
         tokens = [
             Token(TokenType.symbol, "{"),
@@ -145,16 +176,6 @@ class TestValidator(unittest.TestCase):
             Token(TokenType.symbol, "["),
             Token(TokenType.symbol, "]"),
             Token(TokenType.symbol, "}")
-        ]
-        self.assertTrue(validator(tokens))
-
-    def test_array_with_items_valid(self):
-        tokens = [
-            Token(TokenType.symbol, "["),
-            Token(TokenType.number, 1),
-            Token(TokenType.symbol, ","),
-            Token(TokenType.number, 2),
-            Token(TokenType.symbol, "]"),
         ]
         self.assertTrue(validator(tokens))
 

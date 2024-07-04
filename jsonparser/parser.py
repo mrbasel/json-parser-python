@@ -71,26 +71,62 @@ def parse_object(tokens: list[Token]):
     while (i < len(tokens)): 
         current_token = tokens[i]
         if current_token.value == "{" and not next_exp_token:
-            next_exp_token = ["key", "bracket"]
+            next_exp_token = ["key", "}"]
             i += 1
         elif current_token.type == TokenType.string and "key" in next_exp_token:
             last_key = current_token.value
-            next_exp_token = ["colon"]
+            next_exp_token = [":"]
             i += 1
-        elif current_token.type == TokenType.symbol and current_token.value == ":" and "colon" in next_exp_token:
+        elif current_token.type == TokenType.symbol and current_token.value == ":" and ":" in next_exp_token:
             next_exp_token = ["value"]
             i += 1
+        elif current_token.type == TokenType.symbol and "value" in next_exp_token and current_token.value == "[":
+            start = i
+            end = i
+            level_counter = 0
+            for char in tokens[i:]:
+                if char.value == "[":
+                    level_counter += 1
+                elif char.value == "]":
+                    level_counter -= 1
+                if level_counter == 0:
+                    break
+                end += 1
+            array_value = parse_array(tokens[start: end + 1])
+            res[last_key] = array_value
+            last_key = None
+            next_exp_token = ["}", ","]
+            i += (end - i + 1)
+
+        elif current_token.type == TokenType.symbol and "value" in next_exp_token and current_token.value == "{":
+            start = i
+            end = i
+            level_counter = 0
+            for char in tokens[i:]:
+                if char.value == "{":
+                    level_counter += 1
+                elif char.value == "}":
+                    level_counter -= 1
+                if level_counter == 0:
+                    break
+                end += 1
+            obj_value = parse_object(tokens[start: end + 1])
+            res[last_key] = obj_value
+            last_key = None
+            next_exp_token = ["}", ","]
+            i += (end - i + 1)
+
         elif current_token.type != TokenType.symbol and "value" in next_exp_token:
             if current_token.type == TokenType.unknown:
                 raise InvalidJson()
             res[last_key] = current_token.value
             last_key = None
-            next_exp_token = ["bracket", "comma"]
+            next_exp_token = ["}", ","]
             i += 1
-        elif current_token.type == TokenType.symbol and current_token.value == "," and "comma" in next_exp_token:
+        elif current_token.type == TokenType.symbol and current_token.value == "," and "," in next_exp_token:
             next_exp_token = ["key"]
             i += 1
-        elif current_token.value == "}" and "bracket" in next_exp_token:
+        elif current_token.value == "}" and "}" in next_exp_token:
             next_exp_token = []
             i += 1
         else:
@@ -125,6 +161,21 @@ def parse_array(tokens: list[Token]):
             res.append(parse_array(tokens[start: end + 1]))
             i += (end - i)
             next_exp_token = [",", "]"]
+        elif current_token.value == "{" and "value" in next_exp_token:
+            start = i
+            end = i
+            level_counter = 0
+            for char in tokens[i:]:
+                if char.value == "{":
+                    level_counter += 1
+                elif char.value == "}":
+                    level_counter -= 1
+                if level_counter == 0:
+                    break
+                end += 1
+            res.append(parse_object(tokens[start: end + 1]))
+            next_exp_token = [",", "]"]
+            i += (end - i)
         elif current_token.value == "]" and "]" in next_exp_token:
             next_exp_token = []
         elif current_token.type != TokenType.symbol and "value" in next_exp_token:
