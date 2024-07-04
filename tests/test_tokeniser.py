@@ -25,3 +25,11 @@ class TestTokeniser(unittest.TestCase):
     def test_multiple_datatypes(self):
         tokens = tokeniser("{\"key1\": true, \"key2\": false, \"key3\": null, \"key4\": \"value\", \"key5\": 101}")
         self.assertEqual(list(map(lambda t: t.value, tokens)), ["{", "key1", ":", True, ",", "key2", ":", False, ",", "key3", ":", None, ",",  "key4", ":", "value", ",", "key5", ":", 101, "}"])
+    
+    def test_empty_array(self):
+        tokens = tokeniser("{\"key1\": [] }")
+        self.assertEqual(list(map(lambda t: t.value, tokens)), ["{", "key1", ":", "[", "]", "}"])
+
+    def test_array_with_items(self):
+        tokens = tokeniser("{\"key1\": [1, 2, 3] }")
+        self.assertEqual(list(map(lambda t: t.value, tokens)), ["{", "key1", ":", "[", 1, ",", 2, ",", 3, "]", "}"])

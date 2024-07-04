@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-TokenType = Enum("TokenType", ["symbol", "string", "bool", "number", "null", "object", "array", "unknown"])
+TokenType = Enum("TokenType", ["symbol", "string", "bool", "number", "null", "object", "unknown"])
 
 @dataclass
 class Token:
@@ -17,7 +17,7 @@ def tokeniser(text: str):
     i = 0
     while i < len(text):
         char = text[i]
-        if char == "{" or char == "}" or char == ":" or char == ",":
+        if char == "{" or char == "}" or char == ":" or char == "," or char == "[" or char == "]":
             tokens.append(Token(TokenType.symbol, char))
         elif char == "\"":
             i += 1
@@ -28,7 +28,7 @@ def tokeniser(text: str):
             tokens.append(Token(TokenType.string, value))
         elif char != " ":
             value = ""
-            while i < len(text) and text[i] not in [" ", "{", "}", ":", ","]:
+            while i < len(text) and text[i] not in [" ", "{", "}", ":", ",", "[", "]"]:
                 value += text[i]
                 i += 1
             if value == "true":
@@ -56,6 +56,14 @@ def validator(tokens: list[Token]):
 def parse(tokens: list[Token]):
     if len(tokens) == 0:
         raise InvalidJson()
+    elif tokens[0].value == "[":
+        return parse_array(tokens)
+    elif tokens[0].value == "{":
+        return parse_object(tokens)
+    else:
+        raise InvalidJson()
+
+def parse_object(tokens: list[Token]):
     res = {} 
     last_key = None
     i = 0
@@ -91,3 +99,43 @@ def parse(tokens: list[Token]):
     if len(next_exp_token) != 0:
         raise InvalidJson()
     return res
+
+
+def parse_array(tokens: list[Token]):
+    if len(tokens) == 0 or tokens[0].value != "[":
+        raise InvalidJson()
+    bracket_stack = [(t, i) for i, t in enumerate(tokens) if t.value in ["[", "]"]]
+    res = []
+    next_exp_token = ["value", "[", "]"] # comma, value, or bracket
+    i = 1
+    while (i < len(tokens)): 
+        current_token = tokens[i]
+        if current_token.value == "[" and "[" in next_exp_token:
+            start = i
+            end = i
+            level_counter = 0
+            for char in tokens[i:]:
+                if char.value == "[":
+                    level_counter += 1
+                elif char.value == "]":
+                    level_counter -= 1
+                if level_counter == 0:
+                    break
+                end += 1
+            res.append(parse_array(tokens[start: end + 1]))
+            i += (end - i)
+            next_exp_token = [",", "]"]
+        elif current_token.value == "]" and "]" in next_exp_token:
+            next_exp_token = []
+        elif current_token.type != TokenType.symbol and "value" in next_exp_token:
+            res.append(current_token.value)
+            next_exp_token = [",", "]"]
+        elif current_token.type == TokenType.symbol and current_token.value == "," and "," in next_exp_token:
+            next_exp_token = ["value", "["]
+        else:
+            raise InvalidJson()
+        i += 1
+
+    if (len(bracket_stack) % 2) == 0:
+        return res
+    raise InvalidJson()
