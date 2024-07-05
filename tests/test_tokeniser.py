@@ -14,6 +14,14 @@ class TestTokeniser(unittest.TestCase):
         tokens = tokeniser("{\"key\": 250}")
         self.assertEqual(list(map(lambda t: t.value, tokens)), ["{", "key", ":", 250, "}"])
 
+    def test_negative_number_value(self):
+        tokens = tokeniser("{\"key\": -250}")
+        self.assertEqual(list(map(lambda t: t.value, tokens)), ["{", "key", ":", -250, "}"])
+
+    def test_float_value(self):
+        tokens = tokeniser("{\"key\": 10.4}")
+        self.assertEqual(list(map(lambda t: t.value, tokens)), ["{", "key", ":", 10.4, "}"])
+
     def test_bool_value(self):
         tokens = tokeniser("{\"key\": true}")
         self.assertEqual(list(map(lambda t: t.value, tokens)), ["{", "key", ":", True, "}"])
@@ -33,3 +41,7 @@ class TestTokeniser(unittest.TestCase):
     def test_array_with_items(self):
         tokens = tokeniser("{\"key1\": [1, 2, 3] }")
         self.assertEqual(list(map(lambda t: t.value, tokens)), ["{", "key1", ":", "[", 1, ",", 2, ",", 3, "]", "}"])
+
+    def test_strings_with_newline(self):
+        tokens = tokeniser('{\"key1\": "Hello\n" }')
+        self.assertEqual(list(map(lambda t: t.value, tokens)), ["{", "key1", ":", "Hello\n", "}"])

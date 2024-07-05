@@ -37,8 +37,10 @@ def tokeniser(text: str):
                 tokens.append(Token(TokenType.bool, False))
             elif value == "null":
                 tokens.append(Token(TokenType.null, None))
-            elif value.isdigit():
-                tokens.append(Token(TokenType.number, int(value)))
+            elif is_number(value):
+                tokens.append(Token(TokenType.number, float(value)))
+            elif value == "\n":
+                continue
             else:
                 tokens.append(Token(TokenType.unknown, value))
             i -= 1
@@ -161,6 +163,9 @@ def parse_array(tokens: list[Token]):
             res.append(parse_array(tokens[start: end + 1]))
             i += (end - i)
             next_exp_token = [",", "]"]
+        
+        elif current_token.type == TokenType.unknown:
+            raise InvalidJson()
         elif current_token.value == "{" and "value" in next_exp_token:
             start = i
             end = i
@@ -187,6 +192,16 @@ def parse_array(tokens: list[Token]):
             raise InvalidJson()
         i += 1
 
-    if (len(bracket_stack) % 2) == 0:
+    if (len(bracket_stack) % 2) == 0 and len(next_exp_token) == 0:
         return res
     raise InvalidJson()
+
+def is_number(input: str):
+    try:
+        # check if leading zero and number is not equal to zero (eg. 012)
+        if len(input) > 0 and input[0] == "0" and float(input) != 0:
+            return False
+        float(input)
+        return True
+    except ValueError:
+        return False
