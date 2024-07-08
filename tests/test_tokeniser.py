@@ -45,3 +45,9 @@ class TestTokeniser(unittest.TestCase):
     def test_strings_with_newline(self):
         tokens = tokeniser('{\"key1\": "Hello\n" }')
         self.assertEqual(list(map(lambda t: t.value, tokens)), ["{", "key1", ":", "Hello\n", "}"])
+
+    def test_inner_double_quote(self):
+        tokens = tokeniser(r'{"key1": "\"Hello" }')
+        self.assertEqual(list(map(lambda t: t.value, tokens)), ["{", "key1", ":", "\"Hello", "}"])
+
+

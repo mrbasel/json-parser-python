@@ -1,5 +1,5 @@
 import unittest
-from jsonparser.parser import InvalidJson, validator, Token, TokenType
+from jsonparser.parser import validator, parse, Token, TokenType
 
 class TestValidator(unittest.TestCase):
     def test_empty_object_valid(self):

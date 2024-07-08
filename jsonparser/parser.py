@@ -1,3 +1,4 @@
+import codecs
 from dataclasses import dataclass
 from enum import Enum
 
@@ -22,10 +23,17 @@ def tokeniser(text: str):
         elif char == "\"":
             i += 1
             value = ""
-            while i < len(text) and text[i] != "\"":
-                value += text[i]
-                i += 1
-            tokens.append(Token(TokenType.string, value))
+            while i < len(text):
+                # Check for nested double quotes
+                if text[i] == "\\" and text[i + 1] == "\"":
+                    value += "\""
+                    i += 2
+                elif text[i] == "\"":
+                    break
+                else:
+                    value += text[i]
+                    i += 1
+            tokens.append(Token(TokenType.string, codecs.decode(value, "unicode_escape")))
         elif char != " ":
             value = ""
             while i < len(text) and text[i] not in [" ", "{", "}", ":", ",", "[", "]"]:
