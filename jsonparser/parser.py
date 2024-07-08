@@ -84,7 +84,7 @@ def parse_object(tokens: list[Token]):
             next_exp_token = ["key", "}"]
             i += 1
         elif current_token.type == TokenType.string and "key" in next_exp_token:
-            last_key = current_token.value
+            last_key = validate_string(current_token.value)
             next_exp_token = [":"]
             i += 1
         elif current_token.type == TokenType.symbol and current_token.value == ":" and ":" in next_exp_token:
@@ -129,7 +129,10 @@ def parse_object(tokens: list[Token]):
         elif current_token.type != TokenType.symbol and "value" in next_exp_token:
             if current_token.type == TokenType.unknown:
                 raise InvalidJson()
-            res[last_key] = current_token.value
+            if current_token.type == TokenType.string:
+                res[last_key] = validate_string(current_token.value)
+            else:
+                res[last_key] = current_token.value
             last_key = None
             next_exp_token = ["}", ","]
             i += 1
@@ -192,7 +195,7 @@ def parse_array(tokens: list[Token]):
         elif current_token.value == "]" and "]" in next_exp_token:
             next_exp_token = []
         elif current_token.type != TokenType.symbol and "value" in next_exp_token:
-            res.append(current_token.value)
+            res.append(validate_string(current_token.value))
             next_exp_token = [",", "]"]
         elif current_token.type == TokenType.symbol and current_token.value == "," and "," in next_exp_token:
             next_exp_token = ["value", "["]
@@ -204,12 +207,21 @@ def parse_array(tokens: list[Token]):
         return res
     raise InvalidJson()
 
-def is_number(input: str):
+def is_number(input_string: str):
     try:
         # check if leading zero and number is not equal to zero (eg. 012)
-        if len(input) > 0 and input[0] == "0" and float(input) != 0:
+        if len(input_string) > 0 and input_string[0] == "0" and float(input_string) != 0:
             return False
-        float(input)
+        float(input_string)
         return True
     except ValueError:
         return False
+
+def validate_string(input_string: str):
+    repr_string = repr(input_string)[1:-1]
+    i = 0
+    while i < len(repr_string):
+        if repr_string[i] == "\\" and repr_string[i + 1] not in ["\"", "\\", "/", "b", "f", "n", "r", "t"]:
+            raise InvalidJson(f"Invalid escape sequence \\{repr_string[i+1]}")
+        i += 1
+    return repr_string
