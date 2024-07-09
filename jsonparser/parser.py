@@ -33,7 +33,7 @@ def tokeniser(text: str):
                 else:
                     value += text[i]
                     i += 1
-            tokens.append(Token(TokenType.string, codecs.decode(value, "unicode_escape")))
+            tokens.append(Token(TokenType.string, value))
         elif char != " ":
             value = ""
             while i < len(text) and text[i] not in [" ", "{", "}", ":", ",", "[", "]"]:
@@ -195,7 +195,10 @@ def parse_array(tokens: list[Token]):
         elif current_token.value == "]" and "]" in next_exp_token:
             next_exp_token = []
         elif current_token.type != TokenType.symbol and "value" in next_exp_token:
-            res.append(validate_string(current_token.value))
+            if current_token.type == TokenType.string:
+                res.append(validate_string(current_token.value))
+            else:
+                res.append(current_token.value)
             next_exp_token = [",", "]"]
         elif current_token.type == TokenType.symbol and current_token.value == "," and "," in next_exp_token:
             next_exp_token = ["value", "["]
@@ -218,10 +221,16 @@ def is_number(input_string: str):
         return False
 
 def validate_string(input_string: str):
+    if "\n" in input_string:
+        raise InvalidJson(f"Invalid linebreak in {input_string}")
+    if "\t" in input_string:
+        raise InvalidJson(f"Invalid tab in {input_string}")
+
     repr_string = repr(input_string)[1:-1]
     i = 0
     while i < len(repr_string):
         if repr_string[i] == "\\" and repr_string[i + 1] not in ["\"", "\\", "/", "b", "f", "n", "r", "t"]:
             raise InvalidJson(f"Invalid escape sequence \\{repr_string[i+1]}")
         i += 1
+
     return repr_string

@@ -71,15 +71,15 @@ class TestValidator(unittest.TestCase):
             Token(TokenType.symbol, "{"),
             Token(TokenType.string, "key1"),
             Token(TokenType.symbol, ":"),
-            Token(TokenType.string, True),
+            Token(TokenType.bool, True),
             Token(TokenType.symbol, ","),
             Token(TokenType.string, "key2"),
             Token(TokenType.symbol, ":"),
-            Token(TokenType.string, False),
+            Token(TokenType.bool, False),
             Token(TokenType.symbol, ","),
             Token(TokenType.string, "key3"),
             Token(TokenType.symbol, ":"),
-            Token(TokenType.string, None),
+            Token(TokenType.string, "None"),
             Token(TokenType.symbol, ","),
             Token(TokenType.string, "key4"),
             Token(TokenType.symbol, ":"),
@@ -87,18 +87,18 @@ class TestValidator(unittest.TestCase):
             Token(TokenType.symbol, ","),
             Token(TokenType.string, "key5"),
             Token(TokenType.symbol, ":"),
-            Token(TokenType.string, 101),
+            Token(TokenType.number, 101),
             Token(TokenType.symbol, "}")
         ]
         self.assertTrue(validator(tokens))
 
 
-    def test_unkown_token_invalid(self):
+    def test_unknown_token_invalid(self):
         tokens = [
             Token(TokenType.symbol, "{"),
             Token(TokenType.string, "key1"),
             Token(TokenType.symbol, ":"),
-            Token(TokenType.string, True),
+            Token(TokenType.bool, True),
             Token(TokenType.symbol, ","),
             Token(TokenType.string, "key2"),
             Token(TokenType.symbol, ":"),
@@ -114,7 +114,7 @@ class TestValidator(unittest.TestCase):
             Token(TokenType.symbol, ","),
             Token(TokenType.string, "key5"),
             Token(TokenType.symbol, ":"),
-            Token(TokenType.string, 101),
+            Token(TokenType.number, 101),
             Token(TokenType.symbol, "}")
         ]
         self.assertFalse(validator(tokens))
