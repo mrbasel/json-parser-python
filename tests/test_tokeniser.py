@@ -50,4 +50,8 @@ class TestTokeniser(unittest.TestCase):
         tokens = tokeniser(r'{"key1": "\"Hello" }')
         self.assertEqual(list(map(lambda t: t.value, tokens)), ["{", "key1", ":", "\"Hello", "}"])
 
+    def test_fraction_less_than_one(self):
+        tokens = tokeniser(r'{"key1": 0.5 }')
+        self.assertEqual(list(map(lambda t: t.value, tokens)), ["{", "key1", ":", 0.5, "}"])
+
 
