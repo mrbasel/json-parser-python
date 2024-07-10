@@ -23,16 +23,28 @@ def tokeniser(text: str):
         elif char == "\"":
             i += 1
             value = ""
+            next_char_escaped = False
             while i < len(text):
-                # Check for nested double quotes
-                if text[i] == "\\" and text[i + 1] == "\"":
-                    value += "\""
-                    i += 2
-                elif text[i] == "\"":
+                if text[i] == "\\" and next_char_escaped:
+                    value += text[i]
+                    next_char_escaped = False
+                    i += 1
+                elif text[i] == "\\" and not next_char_escaped:
+                    if text[i + 1] != "\"":
+                       value += text[i]
+                    next_char_escaped = True
+                    i += 1
+                elif text[i] == "\"" and next_char_escaped:
+                    value += text[i]
+                    i += 1
+                    next_char_escaped = False
+                elif text[i] == "\"" and not next_char_escaped:
                     break
                 else:
                     value += text[i]
                     i += 1
+                    next_char_escaped = False
+
             tokens.append(Token(TokenType.string, value))
         elif char != " ":
             value = ""
@@ -213,7 +225,7 @@ def parse_array(tokens: list[Token]):
 def is_number(input_string: str):
     try:
         # check if leading zero and number is not equal to zero (eg. 012)
-        if len(input_string) > 0 and input_string[0] == "0" and float(input_string) != 0:
+        if len(input_string) > 0 and input_string[0] == "0" and float(input_string) != 0 and "." not in input_string:
             return False
         float(input_string)
         return True
@@ -229,7 +241,7 @@ def validate_string(input_string: str):
     repr_string = repr(input_string)[1:-1]
     i = 0
     while i < len(repr_string):
-        if repr_string[i] == "\\" and repr_string[i + 1] not in ["\"", "\\", "/", "b", "f", "n", "r", "t"]:
+        if repr_string[i] == "\\" and ((i + 1) < len(repr_string) and repr_string[i + 1] not in ["'", "\"", "\\", "/", "b", "f", "n", "r", "t", "u"]):
             raise InvalidJson(f"Invalid escape sequence \\{repr_string[i+1]}")
         i += 1
 
