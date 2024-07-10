@@ -1,13 +1,14 @@
-import codecs
 from dataclasses import dataclass
 from enum import Enum
+from typing import TypeVar, Generic
 
 TokenType = Enum("TokenType", ["symbol", "string", "bool", "number", "null", "object", "unknown"])
+T = TypeVar("T")
 
 @dataclass
-class Token:
+class Token(Generic[T]):
     type: TokenType
-    value: any
+    value: T
 
 class InvalidJson(Exception):
     pass
@@ -186,7 +187,6 @@ def parse_array(tokens: list[Token]):
             res.append(parse_array(tokens[start: end + 1]))
             i += (end - i)
             next_exp_token = [",", "]"]
-        
         elif current_token.type == TokenType.unknown:
             raise InvalidJson()
         elif current_token.value == "{" and "value" in next_exp_token:
