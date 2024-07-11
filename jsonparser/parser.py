@@ -68,24 +68,6 @@ def tokeniser(text: str):
         i += 1
     return tokens
 
-
-def validator(tokens: list[Token]):
-    try:
-        parse(tokens)
-        return True
-    except InvalidJson:
-        return False
-    
-def parse(tokens: list[Token]):
-    if len(tokens) == 0:
-        raise InvalidJson()
-    elif tokens[0].value == "[":
-        return parse_array(tokens)
-    elif tokens[0].value == "{":
-        return parse_object(tokens)
-    else:
-        raise InvalidJson()
-
 def parse_object(tokens: list[Token]):
     res = {} 
     last_key = None
@@ -162,7 +144,6 @@ def parse_object(tokens: list[Token]):
         raise InvalidJson()
     return res
 
-
 def parse_array(tokens: list[Token]):
     if len(tokens) == 0 or tokens[0].value != "[":
         raise InvalidJson()
@@ -221,6 +202,27 @@ def parse_array(tokens: list[Token]):
     if (len(bracket_stack) % 2) == 0 and len(next_exp_token) == 0:
         return res
     raise InvalidJson()
+
+def parse(tokens: list[Token]):
+    if len(tokens) == 0:
+        raise InvalidJson()
+    elif tokens[0].value == "[":
+        return parse_array(tokens)
+    elif tokens[0].value == "{":
+        return parse_object(tokens)
+    else:
+        raise InvalidJson()
+
+def validator(tokens: list[Token]):
+    try:
+        parse(tokens)
+        return True
+    except InvalidJson:
+        return False
+
+def load(text: str):
+    tokens = tokeniser(text)
+    return parse(tokens)
 
 def is_number(input_string: str):
     try:
